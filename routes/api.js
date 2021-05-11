@@ -140,9 +140,36 @@ module.exports = function (app) {
       //json res format same as .get
     })
 
-    .delete(function (req, res) {
+    .delete(async function (req, res) {
       let bookid = req.params.id;
-      res.json({ ok: 'ok' });
+      let book;
+      let comments;
+
+      book = await BOOK.findById(bookid); //.populate('comments'); //holds the full object
+
+      if (!book) {
+        return res.json('no book exists');
+      }
+
+      try {
+        await BOOK.deleteOne({ _id: bookid });
+        console.log('delete book');
+      } catch (error) {
+        return res.json({ error: 'server error', _id: bookid });
+      }
+
+      comments = await COMMENT.findOne({ creator: bookid });
+      if (comments) {
+        try {
+          console.log('delete comments', comments);
+          await COMMENT.deleteMany({ creator: bookid });
+        } catch (error) {
+          return res.json({ error: 'server error', _id: bookid });
+        }
+      }
+
+      return res.json('delete successful');
+
       //if successful response will be 'delete successful'
     });
 };
