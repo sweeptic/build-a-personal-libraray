@@ -190,6 +190,7 @@ suite('Functional Tests', function () {
             comment: 'Hood comment',
           })
           .end((err, res) => {
+            assert.equal(res.status, 200);
             assert.equal(res.body, 'no book exists');
             done();
           });
