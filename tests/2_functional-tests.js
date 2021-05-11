@@ -107,12 +107,12 @@ suite('Functional Tests', function () {
           })
           .end((err, res) => {
             const id = res.body._id;
+            assert.equal(res.status, 200);
 
             chai
               .request(server)
               .get(`/api/books/${id}`)
               .end(function (err, res) {
-                assert.equal(res.status, 200);
                 assert.isObject(res.body, 'response should be an object');
                 assert.property(res.body, 'commentcount', 'should contain commentcount');
                 assert.property(res.body, 'title', 'Books in array should contain title');
@@ -135,6 +135,7 @@ suite('Functional Tests', function () {
           })
           .end((err, res) => {
             const id = res.body._id;
+            assert.equal(res.status, 200);
 
             chai
               .request(server)
@@ -144,7 +145,6 @@ suite('Functional Tests', function () {
                 comment: 'Hood comment',
               })
               .end(function (err, res) {
-                assert.equal(res.status, 200);
                 assert.isObject(res.body, 'response should be an object');
                 assert.property(res.body, 'commentcount', 'should contain commentcount');
                 assert.property(res.body, '_id', 'Books in array should contain _id');
@@ -168,13 +168,13 @@ suite('Functional Tests', function () {
             title: 'Robin Hood',
           })
           .end((err, res) => {
+            assert.equal(res.status, 200);
             const id = res.body._id;
             chai
               .request(server)
               .post(`/api/books/${id}`)
               .set('content-type', 'application/x-www-form-urlencoded')
               .end(function (err, res) {
-                assert.equal(res.status, 200);
                 assert.equal(res.body, 'missing required field comment');
                 done();
               });
@@ -208,11 +208,11 @@ suite('Functional Tests', function () {
           })
           .end((err, res) => {
             const id = res.body._id;
+            assert.equal(res.status, 200);
             chai
               .request(server)
               .delete(`/api/books/${id}`)
               .end(function (err, res) {
-                assert.equal(res.status, 200);
                 assert.equal(res.body, 'delete successful');
                 done();
               });
