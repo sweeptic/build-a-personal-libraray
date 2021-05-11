@@ -76,7 +76,12 @@ module.exports = function (app) {
           return res.json('no book exists');
         }
 
-        res.status(200).json({ title: book.title, comments: book.comments, _id: book._id });
+        res.status(200).json({
+          title: book.title,
+          comments: book.comments,
+          _id: book._id,
+          commentcount: book.commentcount,
+        });
       } catch (error) {
         return res.status(500).json('Server error');
       }
@@ -115,6 +120,7 @@ module.exports = function (app) {
         await createdComment.save({ session: sess });
 
         book.comments.push(createdComment);
+        book.commentcount = book.commentcount + 1;
         await book.save({ session: sess });
         await sess.commitTransaction();
       } catch (err) {
@@ -125,12 +131,13 @@ module.exports = function (app) {
       try {
         const bookWithComment = await BOOK.findById(bookid).populate({
           path: 'comments',
-          select: 'comment -_id ',
+          select: 'comment commentcount -_id ',
         });
 
         const bookInfo = {
           title: bookWithComment.title,
           _id: bookWithComment._id,
+          commentcount: bookWithComment.commentcount,
           comments: bookWithComment.comments.map(commentObj => commentObj.comment),
         };
 
