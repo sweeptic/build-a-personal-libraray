@@ -9,14 +9,13 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const { populate, aggregate } = require('../models/book');
 const BOOK = require('../models/book');
 const COMMENT = require('../models/comment');
 
 module.exports = function (app) {
+  //response will be array of book objects
   app
     .route('/api/books')
-
     .get(async function (req, res) {
       let findAll = await BOOK.find();
 
@@ -29,11 +28,10 @@ module.exports = function (app) {
           };
         })
       );
-      //response will be array of book objects
-      //json res format: [{"_id": bookid, "title": book_title, "commentcount": num_of_comments },...]
     })
 
     .post(async function (req, res) {
+      //response will contain new book object including at least _id and title
       let title = req.body.title;
 
       if (typeof title === 'undefined' || title === '') {
@@ -53,12 +51,17 @@ module.exports = function (app) {
       } catch (error) {
         res.status(500).json('Server error');
       }
-      //response will contain new book object including at least _id and title
     })
 
-    .delete(function (req, res) {
-      //if successful response will be 'complete delete successful'
-      res.json({ ok: 'ok' });
+    .delete(async function (req, res) {
+      //there were no more conditions in the user story....
+      try {
+        await BOOK.deleteMany({});
+        await COMMENT.deleteMany({});
+        return res.json('complete delete successful');
+      } catch (error) {
+        return res.json({ error: 'server error' });
+      }
     });
 
   app
@@ -77,11 +80,10 @@ module.exports = function (app) {
       } catch (error) {
         return res.status(500).json('Server error');
       }
-
-      //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
     })
 
     .post(async function (req, res) {
+      //json res format same as .get
       let bookid = req.params.id;
       let comment = req.body.comment;
       console.log(comment);
@@ -136,16 +138,16 @@ module.exports = function (app) {
       } catch (error) {
         return res.json('fetching comments failed, please try again');
       }
-
-      //json res format same as .get
     })
 
     .delete(async function (req, res) {
+      //if successful response will be 'delete successful'
       let bookid = req.params.id;
       let book;
       let comments;
 
-      book = await BOOK.findById(bookid); //.populate('comments'); //holds the full object
+      book = await BOOK.findById(bookid);
+      comments = await COMMENT.findOne({ creator: bookid });
 
       if (!book) {
         return res.json('no book exists');
@@ -153,15 +155,12 @@ module.exports = function (app) {
 
       try {
         await BOOK.deleteOne({ _id: bookid });
-        console.log('delete book');
       } catch (error) {
         return res.json({ error: 'server error', _id: bookid });
       }
 
-      comments = await COMMENT.findOne({ creator: bookid });
       if (comments) {
         try {
-          console.log('delete comments', comments);
           await COMMENT.deleteMany({ creator: bookid });
         } catch (error) {
           return res.json({ error: 'server error', _id: bookid });
@@ -169,7 +168,5 @@ module.exports = function (app) {
       }
 
       return res.json('delete successful');
-
-      //if successful response will be 'delete successful'
     });
 };
